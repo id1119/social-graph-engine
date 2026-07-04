@@ -47,7 +47,7 @@ class SocialGraphRepository:
                     continue
 
                 from_id, to_id = self._parse_id_pair(line, self.CONNECTIONS_FILE, line_number)
-                graph.add_follow(from_id, to_id)
+                graph.add_follow(from_id, to_id, record_history=False, enforce_blocks=False)
 
     def _load_blocked(self, graph):
         with self._path(self.BLOCKED_FILE).open("r", encoding="utf-8") as file:
