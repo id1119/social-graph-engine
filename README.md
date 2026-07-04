@@ -248,13 +248,49 @@ full:   81306 korisnika, 1768135 veza, 1626 blokiranja
 
 Za `medium` se ocekuje interaktivan rad.
 
-Za `full` treba dokumentovati:
+Performanse se mogu izmeriti pomocu:
 
-- vreme ucitavanja;
-- vreme izgradnje PageRank-a;
-- vreme izgradnje inverted index-a;
-- vreme autocomplete strukture;
-- vreme najskupljih operacija kao sto su PPR preporuke.
+```bash
+python3 performance_check.py dataset/small
+python3 performance_check.py dataset/medium
+python3 performance_check.py dataset/full
+```
+
+Izmerena vremena na ovom racunaru:
+
+```text
+small:
+  load_graph: 0.0461s
+  pagerank: 0.1234s
+  build_search_index: 0.0066s
+  build_trie: 0.0072s
+  search_query: 0.0001s
+  autocomplete_query: 0.0000s
+  bfs_level_2: 0.0000s
+  recommendations: 0.1386s
+
+medium:
+  load_graph: 0.2276s
+  pagerank: 0.9639s
+  build_search_index: 0.0559s
+  build_trie: 0.0157s
+  search_query: 0.0006s
+  autocomplete_query: 0.0006s
+  bfs_level_2: 0.0012s
+  recommendations: 1.3351s
+
+full:
+  load_graph: 1.0917s
+  pagerank: 12.8591s
+  build_search_index: 0.4758s
+  build_trie: 1.1951s
+  search_query: 0.0086s
+  autocomplete_query: 0.0052s
+  bfs_level_2: 0.0030s
+  recommendations: 17.0853s
+```
+
+Najskuplje operacije na `full` skupu su PageRank i PPR preporuke.
 
 ## Napomena za odbranu
 

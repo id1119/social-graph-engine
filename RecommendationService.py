@@ -69,13 +69,10 @@ class RecommendationService:
                     dangling_rank_sum += ranks[user_id]
 
             new_ranks = {user_id: 0 for user_id in user_ids}
-            new_ranks[start_user_id] = 1 - damping_factor
-            dangling_contribution = damping_factor * dangling_rank_sum / user_count
+            new_ranks[start_user_id] = (1 - damping_factor) + damping_factor * dangling_rank_sum
             max_difference = 0
 
             for user_id in user_ids:
-                new_ranks[user_id] += dangling_contribution
-
                 for follower_id in self.graph.followers[user_id]:
                     new_ranks[user_id] += damping_factor * ranks[follower_id] / self.graph.out_degree[follower_id]
 
