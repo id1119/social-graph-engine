@@ -1,63 +1,92 @@
 # Social Graph Engine
 
-A Python social-network simulation built around directed graphs, search, ranking and recommendation algorithms.
+A Python social-network engine built around directed graphs, ranking, indexed search and personalized recommendation algorithms.
 
-The project models users as graph nodes and follow relationships as directed edges, then layers discovery features on top of that graph: PageRank, search, autocomplete, graph traversal and personalized recommendations.
+The project loads a social graph once and builds reusable data structures for PageRank, search, autocomplete, multi-hop traversal and recommendations.
 
 ## Highlights
 
-- Iterative **PageRank** with dangling-node handling
-- **Personalized PageRank** for user-specific recommendations
-- Hybrid recommendation score combining PPR and biography similarity
-- **Inverted index** for user/bio search
+- Iterative **PageRank** with damping and dangling-node handling
+- **Personalized PageRank** for user-specific relevance
+- Hybrid recommendations combining graph relevance and biography similarity
+- **Inverted index** for profile-text search
 - **Trie-based autocomplete** for usernames
 - **BFS traversal** for multi-hop connection discovery
-- "Did you mean" username suggestions
-- Follow/block relationship management
+- Ranked username correction suggestions
+- Heap-based top-k result selection
 - Performance benchmarks across multiple dataset sizes
+
+## Graph model
+
+Users are nodes in a directed graph and follow relationships are directed edges. The graph maintains fast lookup structures for users, outgoing relationships, incoming relationships, out-degree values and relationship constraints.
+
+## PageRank
+
+The implementation uses iterative PageRank with a damping factor of `0.85`, convergence threshold `1e-6`, and redistribution of rank from dangling nodes.
+
+Top users are selected with a heap, avoiding a full sort when only the highest-ranked results are needed.
+
+## Ranked search
+
+Biography terms are normalized and stored in an inverted index:
+
+```text
+term -> { user_id, user_id, ... }
+```
+
+Search scores username and biography matches, then uses PageRank as an additional ranking signal for similarly relevant results.
+
+## Trie autocomplete
+
+Usernames are inserted into a trie at initialization. Prefix queries traverse directly to the matching trie node, collect candidate users and return the highest-ranked completions according to PageRank.
+
+## Personalized recommendations
+
+Recommendations combine Personalized PageRank with Jaccard similarity between normalized biography word sets:
+
+```text
+score = alpha * PersonalizedPageRank
+      + (1 - alpha) * JaccardSimilarity
+```
+
+The `alpha` parameter controls the balance between graph-based and content-based relevance. Existing relationships and disallowed candidates are removed from the recommendation set.
+
+## Multi-hop traversal
+
+Breadth-First Search explores the graph level by level:
+
+```text
+Level 1 -> direct connections
+Level 2 -> one intermediary
+Level 3 -> two intermediaries
+...
+```
+
+A visited set ensures each user is processed at most once during a traversal.
+
+## Username suggestions
+
+The project includes a "Did you mean" service that compares an unknown username with existing usernames and ranks the closest candidates, with PageRank available as an additional ordering signal.
 
 ## Architecture
 
-The project separates graph storage from the services that operate on it:
-
 ```text
-SocialGraph.py               # Graph state and relationships
-SocialGraphRepository.py     # Dataset loading
-PageRankService.py           # Global ranking
-SearchService.py             # Indexed search
-AutocompleteService.py       # Trie autocomplete
-GraphTraversalService.py     # BFS traversal
-RecommendationService.py     # Personalized recommendations
-DidYouMeanService.py         # Fuzzy username suggestions
-performance_check.py         # Benchmarks
-main.py                      # Interactive CLI
+User.py                     User model
+SocialGraph.py              Directed graph state
+SocialGraphRepository.py    Dataset loading
+PageRankService.py          Global PageRank
+SearchService.py            Inverted-index search
+AutocompleteService.py      Trie autocomplete
+GraphTraversalService.py    BFS traversal
+RecommendationService.py    Personalized recommendations
+DidYouMeanService.py        Username suggestions
+performance_check.py        Benchmarks
+main.py                     Interactive CLI
 ```
 
-## Recommendation model
+## Dataset format
 
-Recommendations combine graph structure with profile similarity:
-
-```text
-score = alpha * PersonalizedPageRank + (1 - alpha) * content_similarity
-```
-
-Content similarity is based on Jaccard similarity between user biographies. Existing follows, blocked users and the current user are filtered from the candidate set.
-
-## Running the project
-
-```bash
-python3 main.py
-```
-
-Or select a dataset directly:
-
-```bash
-python3 main.py dataset/small
-python3 main.py dataset/medium
-python3 main.py dataset/full
-```
-
-Each dataset contains:
+The application supports `small`, `medium` and `full` datasets. Each dataset contains:
 
 ```text
 users.txt
@@ -65,7 +94,25 @@ connections.txt
 blocked.txt
 ```
 
-## Features available from the CLI
+with user records, directed follow edges and relationship constraints used by the application.
+
+## Running
+
+Requires Python 3.
+
+```bash
+python3 main.py
+```
+
+Or choose a dataset explicitly:
+
+```bash
+python3 main.py dataset/small
+python3 main.py dataset/medium
+python3 main.py dataset/full
+```
+
+## CLI features
 
 1. Search users
 2. Show top PageRank users
@@ -76,26 +123,26 @@ blocked.txt
 7. Suggest similar usernames
 8. Recommend users
 
-## Performance
-
-The implementation includes a benchmark script for graph loading, PageRank, index construction, autocomplete, BFS and recommendations:
+## Performance benchmark
 
 ```bash
 python3 performance_check.py dataset/medium
 ```
 
-The repository includes datasets ranging from thousands to tens of thousands of users, making it useful for comparing how the algorithms scale.
+The benchmark measures graph loading, PageRank, index construction, trie construction, search, autocomplete, BFS and recommendation execution.
 
-## Tech stack
+## What this project demonstrates
 
-- Python
-- Graph algorithms
-- PageRank / Personalized PageRank
-- Trie
-- BFS
-- Inverted indexes
-- Heap-based top-k selection
+- directed graph modeling
+- iterative ranking algorithms
+- graph traversal
+- personalized ranking
+- inverted-index information retrieval
+- trie-based prefix search
+- top-k selection with heaps
+- hybrid recommendation systems
+- performance-oriented data structures
 
 ## Status
 
-Academic algorithm/data-structures project, maintained as a portfolio implementation of graph-based search and recommendation systems.
+Complete algorithms-and-data-structures project maintained as a portfolio implementation of graph search, ranking and recommendation systems.
